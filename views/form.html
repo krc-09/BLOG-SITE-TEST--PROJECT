@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Site</title>
+</head>
+<body>
+    <h1>Blog Inventory</h1>
+    <!-- Corrected Form -->
+    <form id="blogForm">
+        <label for="title">Blog Title</label>
+        <input type="text" id="title" name="title" required />
+
+        <label for="author">Author</label>
+        <input type="text" id="author" name="author" required />
+
+        <label for="content">Content</label>
+        <textarea id="content" name="content" required></textarea>
+
+        <button type="submit">SUBMIT</button>
+    </form>
+
+    <ul></ul>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.1/axios.min.js"></script>
+
+    <script>
+      // Function to handle form submission
+document.getElementById("blogForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    const blogDetails = {
+        title: event.target.title.value,
+        author: event.target.author.value,
+        content: event.target.content.value,
+    };
+
+    // Add blog via POST request
+    axios.post("http://localhost:3000/blogs/add-titles", blogDetails)
+        .then((response) => {
+            displayBlogTitle(response.data); // Display the new blog title
+        })
+        .catch((error) => console.log(error));
+
+    // Clear the form fields after submission
+    event.target.title.value = "";
+    event.target.author.value = "";
+    event.target.content.value = "";
+});
+
+window.addEventListener("DOMContentLoaded", () => {
+    axios.get("http://localhost:3000/blogs/get-blogs")
+        .then((response) => {
+            response.data.forEach(blog => displayBlogTitle(blog)); // Display only titles initially
+        })
+        .catch((error) => console.log(error));
+});
+
+function displayBlogTitle(blog) {
+    const blogContainer = document.createElement("li");
+    blogContainer.setAttribute("data-blog-id", blog.id); // Add data attribute for easy identification
+
+    const blogTitle = document.createElement("div");
+    blogTitle.textContent = blog.title;
+
+    const expandBtn = document.createElement("button");
+    expandBtn.textContent = "+";
+    expandBtn.addEventListener("click", () => displayBlogDetails(blog, blogContainer));
+
+    blogContainer.appendChild(blogTitle);
+    blogContainer.appendChild(expandBtn);
+
+    document.querySelector("ul").appendChild(blogContainer);
+}
+
+function displayBlogDetails(blog, blogContainer) {
+    if (blogContainer.querySelector(".details")) return;
+
+    const details = document.createElement("div");
+    details.classList.add("details");
+
+    details.innerHTML = `
+        <div><strong>Author:</strong> ${blog.author}</div>
+        <div><strong>Content:</strong> ${blog.content}</div>
+    `;
+
+    const commentBox = document.createElement("div");
+    const commentInput = document.createElement("input");
+    const sendBtn = document.createElement("button");
+    sendBtn.textContent = "Send Comment";
+    sendBtn.addEventListener("click", () => addComment(blog.id, commentInput.value, commentList));
+
+    commentBox.appendChild(commentInput);
+    commentBox.appendChild(sendBtn);
+    details.appendChild(commentBox);
+
+    // Create and append the comment list container
+    const commentList = document.createElement("ul");
+    (blog.comments || []).forEach(comment => {
+        const commentItem = createCommentItem(blog.id, comment);
+        commentList.appendChild(commentItem);
+    });
+
+    details.appendChild(commentList);
+    blogContainer.appendChild(details);
+}
+
+function createCommentItem(blogId, comment) {
+    const commentItem = document.createElement("li");
+    commentItem.textContent = comment.text;
+
+    // Add delete button for the comment
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "Delete";
+    deleteBtn.addEventListener("click", () => deleteComment(blogId, comment.id, commentItem));
+
+    commentItem.appendChild(deleteBtn);
+    
+   
+
+    return commentItem;
+}
+
+function addComment(blogId, commentText, commentList) {
+    if (commentText) {
+        axios.post(`http://localhost:3000/blogs/${blogId}/comments`, { commentText })
+            .then((response) => {
+                const newComment = response.data; 
+                console.log("Response from backend:", newComment); // Log response data
+                console.log(newComment);
+
+                // Validate comment data before creating the comment element
+                if (newComment && newComment.text && newComment.id) {
+                    const commentItem = createCommentItem(blogId, newComment);
+                    commentList.appendChild(commentItem);
+                    console.log("Comment added to DOM:", commentItem);
+                } else {
+                    console.log("Invalid comment structure received:", newComment);
+                }
+            })
+            .catch((error) => console.log("Error in adding comment:", error));
+    }
+}
+
+
+
+
+function deleteComment(blogId, commentId, commentItem) {
+    axios.delete(`http://localhost:3000/blogs/${blogId}/comments/${commentId}`)
+        .then(() => {
+            // Remove the comment from the list immediately
+            commentItem.remove();
+            console.log("Comment deleted");
+        })
+        .catch((error) => console.log(error));
+}
+
+    </script>
+</body>
+</html>
+
+
