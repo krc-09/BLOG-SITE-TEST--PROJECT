@@ -2,15 +2,15 @@
 const Blog = require('../Models/Blog');
 const Comment = require('../Models/Comment');
 
-// Get all blogs with their associated comments
+
 exports.getAllBlogs = async (req, res) => {
     try {
         const blogs = await Blog.findAll({
             include: {
-                model: Comment, // Include the comments associated with each blog
-                required: false // Allows blogs without comments
+                model: Comment, 
+                required: false 
             }
-        });
+        });                                                                                                          
         res.json(blogs);
     } catch (error) {
         console.log(error);
@@ -18,7 +18,7 @@ exports.getAllBlogs = async (req, res) => {
     }
 };
 
-// Add a new blog
+
 exports.postAddBlog = (req, res) => {
     const { title, content, author } = req.body;
 
@@ -26,7 +26,9 @@ exports.postAddBlog = (req, res) => {
         return res.status(400).json({ error: 'Title, content, and author are mandatory' });
     }
 
-    Blog.create({ title, content, author })
+    Blog.create(
+        { title, content, author }
+    )
         .then(newBlog => {
             res.status(201).json(newBlog);
         })
@@ -36,7 +38,7 @@ exports.postAddBlog = (req, res) => {
         });
 };
 
-// Add a comment to a specific blog
+
 exports.addComment = (req, res) => {
     const blogId = req.params.blogId;
     const { commentText } = req.body;
@@ -47,8 +49,8 @@ exports.addComment = (req, res) => {
 
     Comment.create({ text: commentText, blogId })
         .then(newComment => {
-            // Send only the new comment in the response
-            res.status(201).json(newComment);  // This returns only the new comment
+           
+            res.status(201).json(newComment);  
         })
         .catch(err => {
             console.error('Error adding comment:', err);
@@ -56,7 +58,7 @@ exports.addComment = (req, res) => {
         });
 };
 
-// Delete a specific comment by blog ID and comment ID
+
 exports.deleteComment = (req, res) => {
     const blogId = req.params.blogId;
     const commentId = req.params.commentId;
@@ -73,7 +75,7 @@ exports.deleteComment = (req, res) => {
             res.status(500).json({ error: 'An error occurred while deleting the comment' });
         });
 };
-// Get a specific blog by ID with its associated comments
+
 exports.getBlogById = (req, res) => {
     const blogId = req.params.blogId;
     Blog.findByPk(blogId, {

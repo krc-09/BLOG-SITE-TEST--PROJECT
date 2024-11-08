@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../utils/database');
-const Blog = require('./Blog'); // Import the Blog model
+const Blog = require('./Blog'); 
 
 const Comment = sequelize.define('comment', {
     id: {
@@ -17,14 +17,13 @@ const Comment = sequelize.define('comment', {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-            model: Blog, // Reference the Blog model
+            model: Blog,
             key: 'id'
         }
     }
 });
 
-// Define the relationship
-Blog.hasMany(Comment, { foreignKey: 'blogId', onDelete: 'CASCADE' }); // One blog can have many comments
-Comment.belongsTo(Blog, { foreignKey: 'blogId' }); // A comment belongs to one blog
+Blog.hasMany(Comment, { foreignKey: 'blogId', onDelete: 'CASCADE' }); 
+Comment.belongsTo(Blog, { foreignKey: 'blogId' }); 
 
 module.exports = Comment;
